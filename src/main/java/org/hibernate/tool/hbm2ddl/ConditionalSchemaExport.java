@@ -67,7 +67,7 @@ public class ConditionalSchemaExport{
             Boolean matchFound = false;
             for(String exclusionTable: tablesToExclude){
                 if(sql.toLowerCase().indexOf(exclusionTable.toLowerCase())>=0){
-                    log.info("Excluding: " + exclusionTable);
+                    log.info("Excluding: " + exclusionTable.toUpperCase());
                     matchFound = true;
                     break;
                 }
@@ -247,7 +247,7 @@ public class ConditionalSchemaExport{
                         e = e.substring(0, e.length() - 1);
                     }
 
-                    log.severe(e);
+                    log.info(e);
                     statement.execute(e);
                 }
             } catch (SQLException var8) {
@@ -297,7 +297,7 @@ public class ConditionalSchemaExport{
             System.out.println(formatted);
         }
 
-        log.severe(formatted);
+        log.info(formatted);
         if(this.outputFile != null) {
             fileOutput.write(formatted + "\n");
         }
