@@ -20,12 +20,18 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.mojo.hibernate3.HibernateExporterMojo;
 import org.codehaus.mojo.hibernate3.HibernateUtils;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.tool.hbm2ddl.ConditionalSchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.hbm2x.Exporter;
+import org.hibernate.tool.hbm2x.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 /**
  * Generates database schema.
@@ -77,6 +83,7 @@ public class Hbm2DDLExporterMojo
         boolean haltOnError = getComponentProperty("haltonerror", false);
         boolean drop = getComponentProperty("drop", false);
         boolean create = getComponentProperty("create", true);
+        String excludeTables = getComponentProperty("excludeTables","");
         String implementation = getComponentProperty("implementation", getComponent().getImplementation());
 
         Configuration configuration = getComponentConfiguration(implementation).getConfiguration(this);
@@ -85,10 +92,21 @@ public class Hbm2DDLExporterMojo
             SchemaUpdate update = new SchemaUpdate(configuration);
             update.execute(scriptToConsole, exportToDatabase);
         } else {
-            SchemaExport export = new SchemaExport(configuration);
+            Properties properties = configuration.getProperties();
+            List<String> tablesToExclude = new ArrayList();
+
+            if(StringUtils.isNotEmpty(excludeTables)){
+                StringTokenizer st = new StringTokenizer(excludeTables,",");
+                while(st.hasMoreTokens()){
+                    tablesToExclude.add(st.nextToken().trim());
+                }
+            }
+
+            ConditionalSchemaExport export = new ConditionalSchemaExport(configuration);
             export.setDelimiter(getComponentProperty("delimiter", ";"));
             export.setHaltOnError(haltOnError);
             export.setFormat(getComponentProperty("format", false));
+            export.setTablesToExclude(tablesToExclude);
 
             String outputFilename = getComponentProperty("outputfilename");
             if (outputFilename != null) {
